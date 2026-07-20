@@ -1,14 +1,26 @@
 import { connectToDatabase } from '@/db';
 import sql from 'mssql';
+import { getUserIdFromRequest } from '../auth/me/route';
 
 export const runtime = 'nodejs';
 
 // 플래너 정보 조회
-export async function GET() {
+export async function GET(request) {
   try {
+    const userId = getUserIdFromRequest(request);
+    if (!userId) {
+      return new Response(JSON.stringify({ TargetDays: '월,수,금', ChaptersPerDay: 1 }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
     const pool = await connectToDatabase();
     
-    const result = await pool.request().query('SELECT TOP 1 * FROM Planner');
+    const result = await pool.request()
+      .input('UserID', sql.Int, userId)
+      .query('SELECT TOP 1 * FROM Planner WHERE UserID = @UserID');
+      
     const planner = result.recordset[0] || { TargetDays: '월,수,금', ChaptersPerDay: 1 };
 
     return new Response(JSON.stringify(planner), {
@@ -26,11 +38,21 @@ export async function GET() {
 // 플래너 설정 변경
 export async function POST(request) {
   try {
+    const userId = getUserIdFromRequest(request);
+    if (!userId) {
+      return new Response(JSON.stringify({ error: '로그인이 필요합니다.' }), {
+        status: 401,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
     const { targetDays, chaptersPerDay } = await request.json();
     const pool = await connectToDatabase();
 
-    // 단일 행 업데이트 (Planner에 데이터가 없으면 삽입, 있으면 업데이트)
-    const checkResult = await pool.request().query('SELECT COUNT(*) as count FROM Planner');
+    // 로그인한 사용자의 플래너가 존재하는지 체크
+    const checkResult = await pool.request()
+      .input('UserID', sql.Int, userId)
+      .query('SELECT COUNT(*) as count FROM Planner WHERE UserID = @UserID');
     const hasRow = checkResult.recordset[0].count > 0;
 
     let query = '';
@@ -39,18 +61,20 @@ export async function POST(request) {
         UPDATE Planner 
         SET TargetDays = @TargetDays, ChaptersPerDay = @ChaptersPerDay
         OUTPUT inserted.*
+        WHERE UserID = @UserID
       `;
     } else {
       query = `
-        INSERT INTO Planner (TargetDays, ChaptersPerDay)
+        INSERT INTO Planner (TargetDays, ChaptersPerDay, UserID)
         OUTPUT inserted.*
-        VALUES (@TargetDays, @ChaptersPerDay)
+        VALUES (@TargetDays, @ChaptersPerDay, @UserID)
       `;
     }
 
     const result = await pool.request()
       .input('TargetDays', sql.NVarChar, targetDays)
       .input('ChaptersPerDay', sql.Int, chaptersPerDay)
+      .input('UserID', sql.Int, userId)
       .query(query);
 
     return new Response(JSON.stringify(result.recordset[0]), {

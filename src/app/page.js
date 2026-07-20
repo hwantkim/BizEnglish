@@ -3,6 +3,117 @@
 import { useState, useEffect } from 'react';
 import StudyViewer from './components/StudyViewer';
 
+// ────── 로그인 오버레이 컴포넌트 ──────
+function LoginOverlay({ onLogin }) {
+  const [email, setEmail] = useState('');
+  const [name, setName] = useState('');
+  const [isRegister, setIsRegister] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!email) return;
+    setLoading(true);
+    setError('');
+
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, name: isRegister ? name : undefined })
+      });
+
+      if (!res.ok) {
+        const errData = await res.json();
+        // 가입되지 않은 이메일이면 회원가입 모드로 전환
+        if (res.status === 400 && errData.error.includes('registration')) {
+          setIsRegister(true);
+          setLoading(false);
+          return;
+        }
+        throw new Error(errData.error || '로그인 오류');
+      }
+
+      const userData = await res.json();
+      onLogin(userData);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="modal-overlay" style={{ background: 'rgba(15, 23, 42, 0.85)' }}>
+      <div className="modal-box" style={{ maxWidth: 380, padding: '32px 28px' }}>
+        <div style={{ textAlign: 'center', marginBottom: 24 }}>
+          <span style={{ fontSize: '2.5rem' }}>🎓</span>
+          <h2 style={{ fontSize: '1.25rem', fontWeight: 800, marginTop: 10, color: 'var(--text-primary)' }}>
+            BizEnglish 시작하기
+          </h2>
+          <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: 4 }}>
+            이메일을 입력하여 개인 학습 진도를 저장하세요.
+          </p>
+        </div>
+
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div>
+            <label style={{ fontSize: '0.72rem', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: 4 }}>
+              이메일 주소
+            </label>
+            <input
+              type="email"
+              required
+              placeholder="name@example.com"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              style={{
+                width: '100%', background: 'var(--bg-primary)', border: '1px solid var(--border)',
+                borderRadius: 8, padding: '10px 14px', color: 'white', outline: 'none', fontSize: '0.88rem'
+              }}
+            />
+          </div>
+
+          {isRegister && (
+            <div style={{ animation: 'slideUp 0.2s ease' }}>
+              <label style={{ fontSize: '0.72rem', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: 4 }}>
+                이름 (첫 가입용)
+              </label>
+              <input
+                type="text"
+                required
+                placeholder="홍길동"
+                value={name}
+                onChange={e => setName(e.target.value)}
+                style={{
+                  width: '100%', background: 'var(--bg-primary)', border: '1px solid var(--border)',
+                  borderRadius: 8, padding: '10px 14px', color: 'white', outline: 'none', fontSize: '0.88rem'
+                }}
+              />
+            </div>
+          )}
+
+          {error && (
+            <div style={{ fontSize: '0.78rem', color: 'var(--danger)', textAlign: 'center', marginTop: 4 }}>
+              ⚠️ {error}
+            </div>
+          )}
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="btn-primary"
+            style={{ width: '100%', padding: '10px 0', borderRadius: 8, marginTop: 8, fontWeight: 700 }}
+          >
+            {loading ? '연결 중...' : isRegister ? '회원가입 및 시작' : '로그인 / 시작'}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 // ────── 4단계: 학습 플래너 컴포넌트 ──────
 function StudyPlannerCard({ planner, onUpdate }) {
   const [editing, setEditing] = useState(false);
@@ -130,7 +241,7 @@ function StudyPlannerCard({ planner, onUpdate }) {
               onChange={e => setChaptersPerDay(parseInt(e.target.value) || 1)}
               style={{
                 width: 60, background: 'var(--bg-card)', border: '1px solid var(--border)',
-                borderRadius: 6, padding: '4px 8px', color: 'white', outline: 'none',
+                borderRadius: 6, padding: '4px 8px', color: 'var(--text-primary)', outline: 'none',
                 textAlign: 'center', fontSize: '0.85rem'
               }}
             />
@@ -173,7 +284,7 @@ function ProgressDashboard({ progressList, chapters }) {
         <h2 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-primary)' }}>
           📊 전체 진도 리포트
         </h2>
-        <span style={{ fontSize: '0.85rem', color: 'var(--accent-light)', fontWeight: 700 }}>
+        <span style={{ fontSize: '0.85rem', color: 'var(--accent)', fontWeight: 700 }}>
           종합 달성률 {overallPercent}%
         </span>
       </div>
@@ -194,7 +305,7 @@ function ProgressDashboard({ progressList, chapters }) {
           { label: '✍️ 쓰기 마스터', count: writeDoneCount, color: 'var(--warning)', percent: getPercent(writeDoneCount) }
         ].map(item => (
           <div key={item.label} style={{ background: 'var(--bg-card)', padding: 14, borderRadius: 12, border: '1px solid var(--border)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', marginBottom: 6 }}>
+            <div style={{ display: 'flex', justifycontent: 'space-between', justifyContent: 'space-between', fontSize: '0.75rem', marginBottom: 6 }}>
               <span style={{ color: 'var(--text-secondary)', fontWeight: 600 }}>{item.label}</span>
               <span style={{ color: 'var(--text-primary)', fontWeight: 700 }}>{item.count} / {totalChapters} ({item.percent}%)</span>
             </div>
@@ -314,13 +425,35 @@ function ChapterListHome({ chapters, progressList, onSelect }) {
 
 // ────── 메인 앱 ──────
 export default function Home() {
+  const [user, setUser] = useState(null);
+  const [loadingUser, setLoadingUser] = useState(true);
   const [chapters, setChapters] = useState([]);
   const [progressList, setProgressList] = useState([]);
   const [planner, setPlanner] = useState(null);
   const [selectedChapter, setSelectedChapter] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // 사용자 세션 로드
+  useEffect(() => {
+    const loadUser = async () => {
+      try {
+        const res = await fetch('/api/auth/me');
+        const data = await res.json();
+        if (data.user) {
+          setUser(data.user);
+        }
+      } catch (err) {
+        console.error('사용자 세션 로딩 오류:', err);
+      } finally {
+        setLoadingUser(false);
+      }
+    };
+    loadUser();
+  }, []);
+
   const fetchData = async () => {
+    if (!user) return;
+    setLoading(true);
     try {
       const [chRes, progRes, planRes] = await Promise.all([
         fetch('/api/chapters'),
@@ -345,8 +478,10 @@ export default function Home() {
   };
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    if (user) {
+      fetchData();
+    }
+  }, [user]);
 
   const handleSelectChapter = (ch) => setSelectedChapter(ch);
   
@@ -384,8 +519,38 @@ export default function Home() {
     });
     const updated = await res.json();
 
-    setProgressList(prev => prev.map(p => p.ChapterID === chapterId ? updated : p));
+    setProgressList(prev => {
+      const exists = prev.some(p => p.ChapterID === chapterId);
+      if (exists) {
+        return prev.map(p => p.ChapterID === chapterId ? updated : p);
+      } else {
+        return [...prev, updated];
+      }
+    });
   };
+
+  const handleLogout = async () => {
+    await fetch('/api/auth/logout', { method: 'POST' });
+    setUser(null);
+    setSelectedChapter(null);
+    setChapters([]);
+    setProgressList([]);
+    setPlanner(null);
+  };
+
+  if (loadingUser) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', gap: 16 }}>
+        <div className="spinner" />
+        <span style={{ color: 'var(--text-secondary)' }}>사용자 정보를 불러오는 중...</span>
+      </div>
+    );
+  }
+
+  // 로그인 상태가 아니면 오버레이 로그인 노출
+  if (!user) {
+    return <LoginOverlay onLogin={(userData) => setUser(userData)} />;
+  }
 
   return (
     <div className="app-shell">
@@ -398,10 +563,10 @@ export default function Home() {
         </div>
 
         {selectedChapter && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginLeft: 'auto' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginLeft: 20 }}>
             <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>현재 학습 중:</span>
             <span style={{
-              fontSize: '0.85rem', fontWeight: 600, color: 'var(--accent-light)',
+              fontSize: '0.85rem', fontWeight: 600, color: 'var(--accent)',
               background: 'var(--accent-glow)', padding: '4px 12px', borderRadius: 8
             }}>
               Ch.{selectedChapter.ChapterID} {selectedChapter.Title}
@@ -409,19 +574,19 @@ export default function Home() {
           </div>
         )}
 
-        {!selectedChapter && (
-          <div style={{ marginLeft: 'auto', display: 'flex', gap: 12, alignItems: 'center' }}>
-            <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-              총 {chapters.length}개 챕터
-            </span>
-            <div style={{
-              background: 'var(--accent-glow)', border: '1px solid var(--accent)',
-              borderRadius: 20, padding: '4px 14px', fontSize: '0.75rem', color: 'var(--accent-light)', fontWeight: 600
-            }}>
-              진도 학습 시스템 ✓
-            </div>
+        {/* 다중 사용자 프로필 상태 및 로그아웃 단추 */}
+        <div style={{ marginLeft: 'auto', display: 'flex', gap: 14, alignItems: 'center' }}>
+          <div style={{ fontSize: '0.85rem', color: 'var(--text-primary)', fontWeight: 600 }}>
+            👤 {user.Name}님 👋
           </div>
-        )}
+          <button
+            onClick={handleLogout}
+            className="speed-btn"
+            style={{ padding: '6px 12px', fontSize: '0.78rem', borderColor: 'var(--border)' }}
+          >
+            로그아웃
+          </button>
+        </div>
       </nav>
 
       {/* 메인 컨텐츠 영역 */}

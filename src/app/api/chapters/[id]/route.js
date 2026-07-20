@@ -1,16 +1,17 @@
-export const runtime = 'nodejs';
-
 import { connectToDatabase } from '@/db';
 import sql from 'mssql';
+import { getUserIdFromRequest } from '../../auth/me/route';
 
 export async function GET(request, { params }) {
-  const { id } = await params; // Next.js 15 route params are async
+  const { id } = await params;
   try {
+    const userId = getUserIdFromRequest(request);
     const pool = await connectToDatabase();
     
-    // 1. 챕터 기본 정보 및 진도 정보 조회
+    // 1. 챕터 기본 정보 및 로그인한 사용자의 진도 정보 조회
     const chapterResult = await pool.request()
       .input('ChapterID', sql.Int, id)
+      .input('UserID', sql.Int, userId || -1)
       .query(`
         SELECT 
           c.*,
@@ -18,7 +19,7 @@ export async function GET(request, { params }) {
           ISNULL(p.SpeakDone, 0) AS SpeakDone,
           ISNULL(p.WriteDone, 0) AS WriteDone
         FROM Chapters c
-        LEFT JOIN Progress p ON c.ChapterID = p.ChapterID
+        LEFT JOIN Progress p ON c.ChapterID = p.ChapterID AND p.UserID = @UserID
         WHERE c.ChapterID = @ChapterID
       `);
       
@@ -41,10 +42,11 @@ export async function GET(request, { params }) {
       .input('ChapterID', sql.Int, id)
       .query('SELECT * FROM Vocabulary WHERE ChapterID = @ChapterID');
 
-    // 4. 작성된 메모 조회
+    // 4. 로그인한 사용자의 메모만 조회 (또는 가입이 안 된 기본 테스트용 챕터 메모 노출)
     const notesResult = await pool.request()
       .input('ChapterID', sql.Int, id)
-      .query('SELECT * FROM Notes WHERE ChapterID = @ChapterID ORDER BY CreatedAt DESC');
+      .input('UserID', sql.Int, userId || -1)
+      .query('SELECT * FROM Notes WHERE ChapterID = @ChapterID AND (UserID = @UserID OR UserID IS NULL) ORDER BY CreatedAt DESC');
 
     const responseData = {
       chapter,
