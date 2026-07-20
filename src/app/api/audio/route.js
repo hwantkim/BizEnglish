@@ -15,15 +15,24 @@ export async function GET(request) {
 
   try {
     const connectionString = process.env.AZURE_STORAGE_CONNECTION_STRING;
+    
+    // 만약 스토리지 연결 스트링 환경 변수가 비어 있다면, 공용 URL로 직접 307 Redirect 유도 (CORS 허용 시 가장 효과적)
     if (!connectionString) {
-      throw new Error('AZURE_STORAGE_CONNECTION_STRING 환경 변수가 설정되지 않았습니다.');
+      console.warn('AZURE_STORAGE_CONNECTION_STRING이 설정되지 않았으므로 직접 Blob URL로 Redirect합니다.');
+      return new Response(null, {
+        status: 307,
+        headers: {
+          'Location': blobUrl,
+          'Access-Control-Allow-Origin': '*'
+        }
+      });
     }
+
     const blobServiceClient = BlobServiceClient.fromConnectionString(connectionString);
     
     // URL에서 컨테이너명과 경로 파싱
     const urlObj = new URL(blobUrl);
     const pathParts = urlObj.pathname.split('/');
-    // pathParts: ["", "biz-english-store", "mp3", "01 bltg_01_Interviews.mp3"]
     const containerName = pathParts[1];
     const blobName = decodeURIComponent(pathParts.slice(2).join('/'));
 
@@ -38,15 +47,21 @@ export async function GET(request) {
     headers.set('Content-Type', 'audio/mpeg');
     headers.set('Content-Length', downloadResponse.contentLength.toString());
     headers.set('Accept-Ranges', 'bytes');
+    headers.set('Access-Control-Allow-Origin', '*');
 
     return new Response(downloadResponse.readableStreamBody, {
       status: 200,
       headers
     });
   } catch (error) {
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' }
+    // 에러 발생 시에도 최후의 수단으로 public URL 다이렉트 리다이렉트 시도
+    console.error('오디오 스트리밍 프록시 오류, public URL 리다이렉트 시도:', error.message);
+    return new Response(null, {
+      status: 307,
+      headers: {
+        'Location': blobUrl,
+        'Access-Control-Allow-Origin': '*'
+      }
     });
   }
 }
