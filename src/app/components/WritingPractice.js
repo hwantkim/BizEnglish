@@ -107,7 +107,7 @@ export default function WritingPractice({ scripts }) {
                     onKeyDown={e => handleKeyPress(e, s.ScriptID)}
                     style={{
                       flex: 1, background: 'var(--bg-secondary)', border: '1px solid var(--border)',
-                      borderRadius: 8, padding: '10px 14px', color: 'white', outline: 'none',
+                      borderRadius: 8, padding: '10px 14px', color: 'var(--text-primary)', outline: 'none',
                       fontSize: '0.88rem'
                     }}
                   />
