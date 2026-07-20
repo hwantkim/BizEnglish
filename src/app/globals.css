@@ -2,34 +2,34 @@
 @import "tailwindcss";
 
 :root {
-  /* 다크 모드 기본 팔레트 */
-  --bg-primary: #0f1117;
-  --bg-secondary: #1a1d2e;
-  --bg-card: #1e2235;
-  --bg-hover: #252840;
-  --border: #2e3250;
-  --border-light: #3a3f6e;
+  /* 라이트 브라이트 모드 기본 팔레트 */
+  --bg-primary: #f8fafc;        /* 매우 밝고 정돈된 슬레이트 계열 회색 */
+  --bg-secondary: #ffffff;      /* 카드 배경 및 네비게이션 흰색 */
+  --bg-card: #ffffff;
+  --bg-hover: #f1f5f9;          /* 마우스 오버 시 연한 회색 */
+  --border: #e2e8f0;            /* 얇고 밝은 보더선 */
+  --border-light: #cbd5e1;
 
-  /* 브랜드 컬러 */
-  --accent: #5b6cf9;
-  --accent-light: #7b89ff;
-  --accent-glow: rgba(91, 108, 249, 0.25);
-  --success: #4ade80;
-  --warning: #facc15;
-  --danger: #f87171;
+  /* 세련되고 현대적인 인디고 포인트 브랜드 컬러 */
+  --accent: #4f46e5;            /* 메인 인디고 */
+  --accent-light: #6366f1;      /* 보조 밝은 인디고 */
+  --accent-glow: rgba(79, 70, 229, 0.08); /* 연한 인디고 글로우 효과 */
+  --success: #10b981;           /* 에메랄드 그린 */
+  --warning: #f59e0b;           /* 앰버 오렌지 */
+  --danger: #ef4444;            /* 코랄 레드 */
 
-  /* 텍스트 */
-  --text-primary: #e8eaf6;
-  --text-secondary: #9ba3c7;
-  --text-muted: #5a6088;
+  /* 라이트 모드 가독성을 고려한 다크 그레이 텍스트 */
+  --text-primary: #0f172a;      /* 짙은 차콜 */
+  --text-secondary: #475569;    /* 서브 텍스트 슬레이트 */
+  --text-muted: #64748b;        /* 안내 및 약한 텍스트 */
 
   /* 오디오 플레이어 */
-  --player-bg: #131829;
-  --player-track: #2e3250;
+  --player-bg: #f1f5f9;
+  --player-track: #cbd5e1;
   --player-fill: var(--accent);
 
-  /* 하이라이트 */
-  --highlight-active: rgba(91, 108, 249, 0.2);
+  /* 하이라이트 활성화 */
+  --highlight-active: rgba(79, 70, 229, 0.06);
   --highlight-border: var(--accent);
 }
 
@@ -435,9 +435,9 @@ body {
   white-space: nowrap;
 }
 
-.speaker-a { background: rgba(91,108,249,0.2); color: var(--accent-light); }
-.speaker-b { background: rgba(74,222,128,0.15); color: #86efac; }
-.speaker-other { background: rgba(250,204,21,0.15); color: #fde047; }
+.speaker-a { background: rgba(79, 70, 229, 0.1); color: var(--accent); }
+.speaker-b { background: rgba(16, 185, 129, 0.1); color: #047857; }
+.speaker-other { background: rgba(245, 158, 11, 0.1); color: #b45309; }
 
 .script-content { flex: 1; min-width: 0; }
 

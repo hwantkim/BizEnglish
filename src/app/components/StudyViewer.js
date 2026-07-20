@@ -418,7 +418,7 @@ export default function StudyViewer({ chapter, onBack }) {
           <>
             {data.chapter.MP3Url && (
               <AudioPlayer
-                mp3Url={data.chapter.MP3Url}
+                mp3Url={`/api/audio?url=${encodeURIComponent(data.chapter.MP3Url)}`}
                 chapterTitle={data.chapter.Title}
                 scripts={data.scripts}
                 onTimeUpdate={setCurrentTime}
