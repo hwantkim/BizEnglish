@@ -448,7 +448,7 @@ body {
   font-weight: 400;
 }
 
-.script-line.active .script-eng { color: white; font-weight: 500; }
+.script-line.active .script-eng { color: #065f46; font-weight: 600; }
 
 .script-kor {
   font-size: 0.82rem;
