@@ -1,6 +1,3 @@
-import { connectToDatabase } from '@/db';
-import sql from 'mssql';
-
 export const runtime = 'nodejs';
 
 import { connectToDatabase } from '@/db';
