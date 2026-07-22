@@ -439,13 +439,21 @@ body {
 .speaker-b { background: rgba(16, 185, 129, 0.1); color: #047857; }
 .speaker-other { background: rgba(245, 158, 11, 0.1); color: #b45309; }
 
-.script-content { flex: 1; min-width: 0; }
+.script-content {
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
 
 .script-eng {
   font-size: 0.95rem;
   color: var(--text-primary);
   line-height: 1.6;
   font-weight: 400;
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .script-line.active .script-eng { color: #15803d !important; font-weight: 600; }
@@ -460,6 +468,8 @@ body {
   color: var(--text-muted);
   margin-top: 4px;
   line-height: 1.5;
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .script-actions {
@@ -936,14 +946,39 @@ body {
     margin-top: 4px;
   }
 
+  .script-area {
+    padding: 0 10px 20px;
+    width: 100%;
+    box-sizing: border-box;
+    overflow-x: hidden;
+  }
+
   .script-line {
+    flex-direction: column;
+    align-items: flex-start;
     padding: 12px 14px;
-    gap: 10px;
+    gap: 8px;
+    width: 100%;
+    box-sizing: border-box;
+    position: relative;
+  }
+
+  .script-content {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .script-actions {
+    opacity: 1 !important;
+    position: absolute;
+    top: 10px;
+    right: 10px;
   }
 
   .speaker-badge {
     font-size: 0.65rem;
     padding: 2px 8px;
+    margin-bottom: 2px;
   }
 }
 
