@@ -324,7 +324,7 @@ import SpeakingPractice from './SpeakingPractice';
 import WritingPractice from './WritingPractice';
 
 // ────── 메인 학습 뷰어 ──────
-export default function StudyViewer({ chapter, onBack }) {
+export default function StudyViewer({ chapter, onBack, mobileRightPanelOpen }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [currentTime, setCurrentTime] = useState(0);
@@ -448,7 +448,7 @@ export default function StudyViewer({ chapter, onBack }) {
       </div>
 
       {/* 우측 패널 */}
-      <div className="right-panel">
+      <div className={`right-panel ${mobileRightPanelOpen ? 'mobile-open' : ''}`}>
         <div className="panel-tabs">
           <button
             className={`panel-tab ${panelTab === 'notes' ? 'active' : ''}`}

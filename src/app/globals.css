@@ -803,3 +803,147 @@ body {
   from { opacity: 0; transform: translateY(16px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+/* ────────────────────────────── 모바일/태블릿 반응형 스타일 ─────────────────────────── */
+
+/* 1024px 이하 (태블릿 & 모바일 공통) */
+@media (max-width: 1024px) {
+  .main-layout {
+    grid-template-columns: 1fr;
+    position: relative;
+  }
+
+  /* 사이드바 & 우측 패널 슬라이드 드로어로 전환 */
+  .chapter-sidebar {
+    position: fixed;
+    top: 64px;
+    left: 0;
+    bottom: 0;
+    width: 280px;
+    z-index: 150;
+    box-shadow: 4px 0 20px rgba(0,0,0,0.15);
+    transform: translateX(-100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .chapter-sidebar.mobile-open {
+    transform: translateX(0);
+  }
+
+  .right-panel {
+    position: fixed;
+    top: 64px;
+    right: 0;
+    bottom: 0;
+    width: 320px;
+    z-index: 150;
+    box-shadow: -4px 0 20px rgba(0,0,0,0.15);
+    transform: translateX(100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .right-panel.mobile-open {
+    transform: translateX(0);
+  }
+
+  /* 슬라이드 드로어 백드롭 */
+  .drawer-overlay {
+    position: fixed;
+    top: 64px;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.5);
+    backdrop-filter: blur(2px);
+    z-index: 140;
+    animation: fadeIn 0.2s ease;
+  }
+
+  .navbar {
+    padding: 0 16px;
+  }
+
+  .audio-player {
+    margin: 14px 16px;
+    padding: 14px 16px;
+  }
+
+  .script-area {
+    padding: 0 16px 20px;
+  }
+
+  .viewer-header {
+    padding: 16px 16px 0;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .viewer-tabs {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .viewer-tab {
+    flex: 1;
+    text-align: center;
+  }
+}
+
+/* 768px 이하 (모바일 전용) */
+@media (max-width: 768px) {
+  .app-shell {
+    grid-template-rows: 56px 1fr;
+  }
+
+  .navbar {
+    height: 56px;
+  }
+
+  .navbar-subtitle {
+    display: none;
+  }
+
+  .chapter-sidebar {
+    top: 56px;
+    width: 85vw;
+    max-width: 300px;
+  }
+
+  .right-panel {
+    top: 56px;
+    width: 90vw;
+    max-width: 340px;
+  }
+
+  .drawer-overlay {
+    top: 56px;
+  }
+
+  .viewer-title {
+    font-size: 1.1rem;
+  }
+
+  .player-top {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .player-controls {
+    justify-content: center;
+  }
+
+  .speed-btns {
+    width: 100%;
+    justify-content: flex-end;
+    margin-top: 4px;
+  }
+
+  .script-line {
+    padding: 12px 14px;
+    gap: 10px;
+  }
+
+  .speaker-badge {
+    font-size: 0.65rem;
+    padding: 2px 8px;
+  }
+}
+

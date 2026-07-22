@@ -538,6 +538,15 @@ export default function Home() {
     setPlanner(null);
   };
 
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const [mobileRightPanelOpen, setMobileRightPanelOpen] = useState(false);
+
+  // 챕터가 변경되면 모바일 슬라이드 드로어 닫기
+  useEffect(() => {
+    setMobileSidebarOpen(false);
+    setMobileRightPanelOpen(false);
+  }, [selectedChapter]);
+
   if (loadingUser) {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', gap: 16 }}>
@@ -563,38 +572,73 @@ export default function Home() {
         </div>
 
         {selectedChapter && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginLeft: 20 }}>
-            <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>현재 학습 중:</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginLeft: 12 }}>
+            {/* 모바일/태블릿 챕터 사이드바 토글 단추 */}
+            <button
+              className="speed-btn"
+              onClick={() => {
+                setMobileSidebarOpen(!mobileSidebarOpen);
+                setMobileRightPanelOpen(false);
+              }}
+              style={{ padding: '4px 10px', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: 4 }}
+            >
+              📋 <span style={{ display: 'var(--mobile-btn-text, inline)' }}>챕터</span>
+            </button>
+
             <span style={{
-              fontSize: '0.85rem', fontWeight: 600, color: 'var(--accent)',
-              background: 'var(--accent-glow)', padding: '4px 12px', borderRadius: 8
+              fontSize: '0.82rem', fontWeight: 600, color: 'var(--accent)',
+              background: 'var(--accent-glow)', padding: '4px 10px', borderRadius: 8,
+              whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 160
             }}>
               Ch.{selectedChapter.ChapterID} {selectedChapter.Title}
             </span>
+
+            {/* 모바일/태블릿 우측 메모/단어장 패널 토글 단추 */}
+            <button
+              className="speed-btn"
+              onClick={() => {
+                setMobileRightPanelOpen(!mobileRightPanelOpen);
+                setMobileSidebarOpen(false);
+              }}
+              style={{ padding: '4px 10px', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: 4 }}
+            >
+              📝 <span style={{ display: 'var(--mobile-btn-text, inline)' }}>메모</span>
+            </button>
           </div>
         )}
 
         {/* 다중 사용자 프로필 상태 및 로그아웃 단추 */}
-        <div style={{ marginLeft: 'auto', display: 'flex', gap: 14, alignItems: 'center' }}>
-          <div style={{ fontSize: '0.85rem', color: 'var(--text-primary)', fontWeight: 600 }}>
-            👤 {user.Name}님 👋
+        <div style={{ marginLeft: 'auto', display: 'flex', gap: 10, alignItems: 'center' }}>
+          <div style={{ fontSize: '0.82rem', color: 'var(--text-primary)', fontWeight: 600, whiteSpace: 'nowrap' }}>
+            👤 {user.Name}님
           </div>
           <button
             onClick={handleLogout}
             className="speed-btn"
-            style={{ padding: '6px 12px', fontSize: '0.78rem', borderColor: 'var(--border)' }}
+            style={{ padding: '4px 10px', fontSize: '0.78rem', borderColor: 'var(--border)' }}
           >
             로그아웃
           </button>
         </div>
       </nav>
 
+      {/* 모바일 드로어 백드롭 오버레이 */}
+      {(mobileSidebarOpen || mobileRightPanelOpen) && (
+        <div
+          className="drawer-overlay"
+          onClick={() => {
+            setMobileSidebarOpen(false);
+            setMobileRightPanelOpen(false);
+          }}
+        />
+      )}
+
       {/* 메인 컨텐츠 영역 */}
       {selectedChapter ? (
-        // 학습 뷰어: 3-column 레이아웃
+        // 학습 뷰어: 3-column 레이아웃 (반응형 지원)
         <div className="main-layout">
           {/* 좌측: 챕터 사이드바 */}
-          <div className="chapter-sidebar">
+          <div className={`chapter-sidebar ${mobileSidebarOpen ? 'mobile-open' : ''}`}>
             <div style={{ padding: '0 20px 10px', display: 'flex', flexDirection: 'column', gap: 4 }}>
               <div className="sidebar-title" style={{ padding: 0 }}>학습 영역 체크</div>
               
@@ -642,7 +686,10 @@ export default function Home() {
                 <div
                   key={ch.ChapterID}
                   className={`chapter-item ${ch.ChapterID === selectedChapter.ChapterID ? 'active' : ''}`}
-                  onClick={() => setSelectedChapter(ch)}
+                  onClick={() => {
+                    setSelectedChapter(ch);
+                    setMobileSidebarOpen(false);
+                  }}
                 >
                   <div className="chapter-num">{ch.ChapterID}</div>
                   <div className="chapter-meta">
@@ -664,7 +711,11 @@ export default function Home() {
           </div>
 
           {/* 중앙+우측: StudyViewer */}
-          <StudyViewer chapter={selectedChapter} onBack={handleBack} />
+          <StudyViewer
+            chapter={selectedChapter}
+            onBack={handleBack}
+            mobileRightPanelOpen={mobileRightPanelOpen}
+          />
         </div>
       ) : (
         // 홈 화면: 플래너 + 대시보드 + 그리드
