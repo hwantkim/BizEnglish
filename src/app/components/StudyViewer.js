@@ -324,7 +324,7 @@ import SpeakingPractice from './SpeakingPractice';
 import WritingPractice from './WritingPractice';
 
 // ────── 메인 학습 뷰어 ──────
-export default function StudyViewer({ chapter, onBack, mobileRightPanelOpen }) {
+export default function StudyViewer({ chapter, onBack, mobileRightPanelOpen, onToggleSidebar, onToggleRightPanel }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [currentTime, setCurrentTime] = useState(0);
@@ -386,10 +386,31 @@ export default function StudyViewer({ chapter, onBack, mobileRightPanelOpen }) {
           <div className="viewer-title">
             <button
               onClick={onBack}
-              style={{ background:'none', border:'none', cursor:'pointer', color:'var(--text-muted)', fontSize:'1.2rem', marginRight:4 }}
+              style={{ background:'none', border:'none', cursor:'pointer', color:'var(--text-muted)', fontSize:'1.2rem', marginRight:2 }}
+              title="뒤로 가기"
             >←</button>
-            {data.chapter.Title}
-            <span className="viewer-badge">Chapter {chapter.ChapterID}</span>
+
+            {/* 모바일/태블릿 챕터 사이드바 토글 단추 */}
+            <button
+              className="mobile-drawer-btn"
+              onClick={onToggleSidebar}
+              title="챕터 목록"
+            >
+              📋 <span>챕터</span>
+            </button>
+
+            <span className="chapter-title-text">{data.chapter.Title}</span>
+            <span className="viewer-badge">Ch.{chapter.ChapterID}</span>
+
+            {/* 모바일/태블릿 우측 메모/단어장 패널 토글 단추 */}
+            <button
+              className="mobile-drawer-btn"
+              onClick={onToggleRightPanel}
+              title="메모 및 단어장"
+              style={{ marginLeft: 'auto' }}
+            >
+              📝 <span>메모</span>
+            </button>
           </div>
           <div className="viewer-tabs">
             <button

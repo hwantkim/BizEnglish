@@ -571,51 +571,15 @@ export default function Home() {
           <span className="navbar-subtitle">Business Language To Go</span>
         </div>
 
-        {selectedChapter && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginLeft: 12 }}>
-            {/* 모바일/태블릿 챕터 사이드바 토글 단추 */}
-            <button
-              className="speed-btn"
-              onClick={() => {
-                setMobileSidebarOpen(!mobileSidebarOpen);
-                setMobileRightPanelOpen(false);
-              }}
-              style={{ padding: '4px 10px', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: 4 }}
-            >
-              📋 <span style={{ display: 'var(--mobile-btn-text, inline)' }}>챕터</span>
-            </button>
-
-            <span style={{
-              fontSize: '0.82rem', fontWeight: 600, color: 'var(--accent)',
-              background: 'var(--accent-glow)', padding: '4px 10px', borderRadius: 8,
-              whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 160
-            }}>
-              Ch.{selectedChapter.ChapterID} {selectedChapter.Title}
-            </span>
-
-            {/* 모바일/태블릿 우측 메모/단어장 패널 토글 단추 */}
-            <button
-              className="speed-btn"
-              onClick={() => {
-                setMobileRightPanelOpen(!mobileRightPanelOpen);
-                setMobileSidebarOpen(false);
-              }}
-              style={{ padding: '4px 10px', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: 4 }}
-            >
-              📝 <span style={{ display: 'var(--mobile-btn-text, inline)' }}>메모</span>
-            </button>
-          </div>
-        )}
-
         {/* 다중 사용자 프로필 상태 및 로그아웃 단추 */}
-        <div style={{ marginLeft: 'auto', display: 'flex', gap: 10, alignItems: 'center' }}>
-          <div style={{ fontSize: '0.82rem', color: 'var(--text-primary)', fontWeight: 600, whiteSpace: 'nowrap' }}>
+        <div style={{ marginLeft: 'auto', display: 'flex', gap: 8, alignItems: 'center' }}>
+          <div style={{ fontSize: '0.8rem', color: 'var(--text-primary)', fontWeight: 600, whiteSpace: 'nowrap' }}>
             👤 {user.Name}님
           </div>
           <button
             onClick={handleLogout}
             className="speed-btn"
-            style={{ padding: '4px 10px', fontSize: '0.78rem', borderColor: 'var(--border)' }}
+            style={{ padding: '4px 8px', fontSize: '0.75rem', borderColor: 'var(--border)' }}
           >
             로그아웃
           </button>
@@ -715,6 +679,8 @@ export default function Home() {
             chapter={selectedChapter}
             onBack={handleBack}
             mobileRightPanelOpen={mobileRightPanelOpen}
+            onToggleSidebar={() => setMobileSidebarOpen(!mobileSidebarOpen)}
+            onToggleRightPanel={() => setMobileRightPanelOpen(!mobileRightPanelOpen)}
           />
         </div>
       ) : (
