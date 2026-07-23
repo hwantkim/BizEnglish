@@ -103,7 +103,6 @@ function AudioPlayer({ mp3Url, chapterTitle, scripts, onTimeUpdate }) {
   };
 
   // seekTo: 항상 최신 audioRef를 참조하도록 ref 패턴 사용
-  // (useCallback의 [] 의존성으로 인한 클로저 문제 방지)
   const seekToRef = useRef(null);
   seekToRef.current = (sec) => {
     const audio = audioRef.current;
@@ -351,6 +350,7 @@ export default function StudyViewer({ chapter, onBack, mobileRightPanelOpen, onT
   useEffect(() => {
     if (!chapter) return;
     setLoading(true);
+    setCurrentTime(0); // 챕터 변경 시 재생 위치 초기화 (이전 챕터 포커싱 방지)
     fetch(`/api/chapters/${chapter.ChapterID}`)
       .then(r => r.json())
       .then(d => {
@@ -454,7 +454,7 @@ export default function StudyViewer({ chapter, onBack, mobileRightPanelOpen, onT
           <>
             {data.chapter.MP3Url && (
               <AudioPlayer
-                mp3Url={data.chapter.MP3Url}
+                mp3Url={`/api/audio?url=${encodeURIComponent(data.chapter.MP3Url)}`}
                 chapterTitle={data.chapter.Title}
                 scripts={data.scripts}
                 onTimeUpdate={setCurrentTime}
@@ -472,7 +472,7 @@ export default function StudyViewer({ chapter, onBack, mobileRightPanelOpen, onT
         {studyTab === 'speak' && (
           <SpeakingPractice
             scripts={data.scripts}
-            mp3Url={data.chapter.MP3Url}
+            mp3Url={`/api/audio?url=${encodeURIComponent(data.chapter.MP3Url)}`}
           />
         )}
 
