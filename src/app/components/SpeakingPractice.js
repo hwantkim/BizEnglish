@@ -125,7 +125,7 @@ export default function SpeakingPractice({ scripts, mp3Url }) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
-      <audio ref={audioRef} src={`/api/audio?url=${encodeURIComponent(mp3Url)}`} />
+      <audio ref={audioRef} src={mp3Url} />
 
       {/* 역할 설정 헤더 */}
       <div style={{
