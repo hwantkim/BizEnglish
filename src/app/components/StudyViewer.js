@@ -102,17 +102,37 @@ function AudioPlayer({ mp3Url, chapterTitle, scripts, onTimeUpdate }) {
     if (audioRef.current) audioRef.current.playbackRate = r;
   };
 
-  const seekTo = (sec) => {
-    if (audioRef.current) {
-      audioRef.current.currentTime = sec;
-      audioRef.current.play();
-      setPlaying(true);
-    }
-  };
+  // seekTo를 useCallback + ref 패턴으로 구현: 항상 최신 audioRef를 참조
+  const seekToRef = useRef(null);
+  seekToRef.current = useCallback((sec) => {
+    const audio = audioRef.current;
+    if (!audio) return;
 
-  // expose seekTo via ref-like pattern
+    const doSeek = () => {
+      audio.currentTime = sec;
+      audio.play().catch(() => {});
+      setPlaying(true);
+    };
+
+    // duration이 아직 NaN/Infinity이면 loadedmetadata 이후 재시도
+    if (!audio.duration || !isFinite(audio.duration)) {
+      const onMeta = () => {
+        doSeek();
+        audio.removeEventListener('loadedmetadata', onMeta);
+        audio.removeEventListener('durationchange', onMeta);
+      };
+      audio.addEventListener('loadedmetadata', onMeta);
+      audio.addEventListener('durationchange', onMeta);
+      // 로드 안 됐으면 load 트리거
+      if (audio.readyState === 0) audio.load();
+    } else {
+      doSeek();
+    }
+  }, []);
+
+  // window.__audioSeekTo를 매 렌더마다 최신 ref로 갱신
   useEffect(() => {
-    window.__audioSeekTo = seekTo;
+    window.__audioSeekTo = (sec) => seekToRef.current && seekToRef.current(sec);
     return () => { delete window.__audioSeekTo; };
   }, []);
 
@@ -120,7 +140,7 @@ function AudioPlayer({ mp3Url, chapterTitle, scripts, onTimeUpdate }) {
 
   return (
     <div className="audio-player">
-      <audio ref={audioRef} src={mp3Url} preload="metadata" />
+      <audio ref={audioRef} src={mp3Url} preload="auto" crossOrigin="anonymous" />
       <div className="player-top">
         <div className="player-controls">
           <button className="btn-icon" title="뒤로 5초" onClick={() => { if(audioRef.current) audioRef.current.currentTime -= 5; }}>⏪</button>
