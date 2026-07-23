@@ -10,6 +10,21 @@ function LoginOverlay({ onLogin }) {
   const [isRegister, setIsRegister] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [timeLeft, setTimeLeft] = useState(90);
+
+  useEffect(() => {
+    if (timeLeft <= 0) return;
+    const timer = setInterval(() => {
+      setTimeLeft(prev => prev - 1);
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [timeLeft]);
+
+  const formatTime = (seconds) => {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -109,6 +124,34 @@ function LoginOverlay({ onLogin }) {
             {loading ? '연결 중...' : isRegister ? '회원가입 및 시작' : '로그인 / 시작'}
           </button>
         </form>
+
+        <div style={{
+          marginTop: 18,
+          padding: '12px 14px',
+          background: 'rgba(59, 130, 246, 0.08)',
+          border: '1px solid rgba(59, 130, 246, 0.2)',
+          borderRadius: 10,
+          fontSize: '0.78rem',
+          color: 'var(--text-secondary)',
+          lineHeight: '1.4'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 700, color: 'var(--accent)', marginBottom: 4 }}>
+            <span>🔌</span> DB 서버 기상 중...
+          </div>
+          <p style={{ margin: 0, fontSize: '0.74rem', color: 'var(--text-muted)' }}>
+            최초 접속 시 무료 데이터베이스의 절전 모드 해제로 인해 1~2분 정도 지연될 수 있습니다.
+          </p>
+          {timeLeft > 0 ? (
+            <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontWeight: 600 }}>
+              <span>예상 활성화 대기 시간:</span>
+              <span style={{ color: 'var(--warning)', fontFamily: 'monospace', fontSize: '0.9rem' }}>{formatTime(timeLeft)}</span>
+            </div>
+          ) : (
+            <div style={{ marginTop: 8, fontWeight: 700, color: 'var(--success)', textAlign: 'center' }}>
+              ✅ 데이터베이스가 활성화되었습니다. 로그인을 진행해 주세요!
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

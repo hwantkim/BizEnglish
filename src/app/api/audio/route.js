@@ -39,20 +39,46 @@ export async function GET(request) {
     const containerClient = blobServiceClient.getContainerClient(containerName);
     const blobClient = containerClient.getBlobClient(blobName);
 
-    // 오디오 다운로드 스트림 생성
-    const downloadResponse = await blobClient.download(0);
+    const properties = await blobClient.getProperties();
+    const fileSize = properties.contentLength;
 
-    // 브라우저가 오디오 파일로 정확히 해석하도록 audio/mpeg 설정
-    const headers = new Headers();
-    headers.set('Content-Type', 'audio/mpeg');
-    headers.set('Content-Length', downloadResponse.contentLength.toString());
-    headers.set('Accept-Ranges', 'bytes');
-    headers.set('Access-Control-Allow-Origin', '*');
+    const rangeHeader = request.headers.get('range');
 
-    return new Response(downloadResponse.readableStreamBody, {
-      status: 200,
-      headers
-    });
+    if (rangeHeader) {
+      // 브라우저가 특정 구간을 요청했을 경우 (Seek 발생)
+      const parts = rangeHeader.replace(/bytes=/, '').split('-');
+      const start = parseInt(parts[0], 10);
+      const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
+      const chunksize = (end - start) + 1;
+
+      const downloadResponse = await blobClient.download(start, chunksize);
+      
+      const headers = new Headers();
+      headers.set('Content-Type', 'audio/mpeg');
+      headers.set('Content-Range', `bytes ${start}-${end}/${fileSize}`);
+      headers.set('Accept-Ranges', 'bytes');
+      headers.set('Content-Length', chunksize.toString());
+      headers.set('Access-Control-Allow-Origin', '*');
+
+      return new Response(downloadResponse.readableStreamBody, {
+        status: 206, // HTTP 206 Partial Content 응답
+        headers
+      });
+    } else {
+      // Range 요청이 없을 경우 전체 파일 반환
+      const downloadResponse = await blobClient.download(0);
+      
+      const headers = new Headers();
+      headers.set('Content-Type', 'audio/mpeg');
+      headers.set('Content-Length', fileSize.toString());
+      headers.set('Accept-Ranges', 'bytes');
+      headers.set('Access-Control-Allow-Origin', '*');
+
+      return new Response(downloadResponse.readableStreamBody, {
+        status: 200,
+        headers
+      });
+    }
   } catch (error) {
     // 에러 발생 시에도 최후의 수단으로 public URL 다이렉트 리다이렉트 시도
     console.error('오디오 스트리밍 프록시 오류, public URL 리다이렉트 시도:', error.message);
