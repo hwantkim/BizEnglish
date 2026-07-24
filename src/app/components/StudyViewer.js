@@ -172,6 +172,10 @@ function AudioPlayer({ mp3Url, chapterTitle, scripts, onTimeUpdate }) {
 
 // ────── 스크립트 뷰어 ──────
 function ScriptViewer({ scripts, currentTime, notes, onAddNote }) {
+  const activeRef = useRef(null);  // 현재 활성 스크립트 DOM 참조
+  const containerRef = useRef(null); // 스크롤 컨테이너 참조
+  const isUserScrolling = useRef(false); // 사용자가 수동 스크롤 중인지 여부
+  const userScrollTimer = useRef(null);
   const speakerColors = {};
   const colorClasses = ['speaker-a', 'speaker-b', 'speaker-other'];
   let colorIdx = 0;
@@ -194,20 +198,51 @@ function ScriptViewer({ scripts, currentTime, notes, onAddNote }) {
     currentTime < (s.AudioEndSecond || Infinity)
   );
 
+  // 활성 스크립트가 바뀌면 자동 스크롤 (사용자 수동 스크롤 중에는 잠시 중단)
+  useEffect(() => {
+    if (activeScript < 0 || !activeRef.current || !containerRef.current) return;
+    if (isUserScrolling.current) return;
+
+    const container = containerRef.current;
+    const el = activeRef.current;
+
+    // 요소의 container 내 상대 위치 계산
+    const elTop = el.offsetTop - container.offsetTop;
+    // 화면 상단에서 24px 여백을 두고 스크롤
+    container.scrollTo({ top: elTop - 24, behavior: 'smooth' });
+  }, [activeScript]);
+
+  // 사용자 수동 스크롤 감지 → 3초간 자동 스크롤 억제 (재생 중 클릭/스크롤 충돌 방지)
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+    const onScroll = () => {
+      isUserScrolling.current = true;
+      clearTimeout(userScrollTimer.current);
+      userScrollTimer.current = setTimeout(() => {
+        isUserScrolling.current = false;
+      }, 3000);
+    };
+    container.addEventListener('scroll', onScroll, { passive: true });
+    return () => container.removeEventListener('scroll', onScroll);
+  }, []);
+
   const handleScriptClick = (s) => {
+    // 텍스트 클릭으로 탐색 시 자동 스크롤 억제 해제 (클릭 위치가 곧 활성 위치)
+    isUserScrolling.current = false;
     if (window.__audioSeekTo && s.AudioStartSecond) {
       window.__audioSeekTo(s.AudioStartSecond);
     }
   };
-
   return (
-    <div className="script-area">
+    <div className="script-area" ref={containerRef}>
       {scripts.map((s, i) => {
         const isActive = i === activeScript;
         const speakerClass = getSpeakerClass(s.Speaker || 'Speaker');
         return (
           <div
             key={s.ScriptID}
+            ref={isActive ? activeRef : null}
             className={`script-line ${isActive ? 'active' : ''}`}
             onClick={() => handleScriptClick(s)}
           >
